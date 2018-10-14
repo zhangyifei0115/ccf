@@ -1,5 +1,7 @@
 #include<bits/stdc++.h>
-#include<io.h>
+#include<sys/types.h>
+#include<dirent.h>
+//#include<io.h>
 using namespace std;
 struct Pts{//三维坐标
     double x;
@@ -29,8 +31,8 @@ set<Pairs> Set;//存数据和标签对
 map<int,vector<Pts> > Map;//类别对应所有的坐标
 
 vector<string> ptsfiles,categoryfiles;//所有文件的名字
-char* ptsfilepath = ".\\pts";
-char* categorypath = ".\\category";
+char* ptsfilepath = "./pts";
+char* categorypath = "./category";
 
 // 数字转成字符串
 string Dig2Alp(int a)
@@ -66,6 +68,7 @@ string Dig2Alp(int a)
 }
 
 //读取文件夹下所有文件
+/*
 void getFiles(string path,vector<string>& files)
 {
     //文件句柄
@@ -90,6 +93,39 @@ void getFiles(string path,vector<string>& files)
         }while(_findnext(hFile,&fileinfo) == 0);
         _findclose(hFile);
     }
+}*/
+
+void getFiles(string path,vector<string>& files)
+{
+    DIR *pDir = NULL;
+    struct dirent *pFile = NULL;
+    char* szDir = path.c_str();
+    string fpath = "";
+    
+    pDir = opendir(szDir);
+    if (pDir == NULL) 
+        return;
+    
+    while ((pFile = readdir(pDir)) != NULL) {
+        if (pFile->d_type & DT_DIR) {
+            if (strcmp(pFile->d_name, ".") == 0 || strcmp(pFile->d_name, "..") == 0) 
+                continue;
+            
+            char Path[256];
+            int len = strlen(szDir);
+            strncpy(Path, szDir, len + 1);
+            if (szDir[len - 1] != '/') strncat(Path, "/", 2);
+            strncat(Path, pFile->d_name, strlen(pFile->d_name) + 1);
+            scanFile(Path);
+        } else {
+            //printf("path:%s     fileName:%s\n", szDir, pFile->d_name);
+            fpath = szDir;
+            fpath += pFile->d_name;
+            files.push_back(fpath);
+        }
+    }
+    
+    closedir(pDir);
 }
 
 //读取所有文件中内容
@@ -194,17 +230,17 @@ int main()
     getFiles(ptsfilepath,ptsfiles);//文件名放到files中
     getFiles(categorypath,categoryfiles);
     readAllFile();
-    //cout<<"Vecpts.size = "<<Vecpts.size()<<endl;
-    //cout<<"Veccat.size = "<<Veccat.size()<<endl;
+    cout<<"Vecpts.size = "<<Vecpts.size()<<endl;
+    cout<<"Veccat.size = "<<Veccat.size()<<endl;
     //上面已经读取文件中的内容了
     if(Veccat.size()!=Vecpts.size())
     {
         cout<<"data size not equal label size"<<endl;
         exit(0);
     }
-    saveToSet(Vecpts,Veccat,Set);
-    saveToMap(Set,Map);
-    searchAndWrite(Map);
+    //saveToSet(Vecpts,Veccat,Set);
+    //saveToMap(Set,Map);
+    //searchAndWrite(Map);
 
     return 0;
 }
